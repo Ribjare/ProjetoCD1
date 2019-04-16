@@ -18,6 +18,7 @@ def handle_msg(client):
         print(res)
 
 
+
 # Define socket host and port
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 8000
