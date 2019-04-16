@@ -9,6 +9,7 @@ import threading
 isDeactive = False
 
 
+
 def handle_msg(client):
     while True:
         if isDeactive:
@@ -16,7 +17,6 @@ def handle_msg(client):
         # Read answer
         res = client.recv(1024).decode()
         print(res)
-
 
 
 # Define socket host and port
