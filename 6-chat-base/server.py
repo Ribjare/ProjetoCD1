@@ -5,6 +5,7 @@
 
 import socket
 import threading
+from datetime import datetime
 
 
 # class for a chat room
@@ -14,6 +15,7 @@ class ChatRoom:
         self.name = name
         self.userList = []
         self.moderator = moderator
+
 
 # Class for the client
 class Client:
@@ -27,7 +29,14 @@ def handle_client(name, client_connection):
 
         # Print message from client
         msg = client_connection.recv(1024).decode()
+        now = datetime.now()
+        print(now.strftime("%H:%M:%S"))
         print('Received: ({}) - {}'.format(name, msg))
+
+        msg = interpreter(msg)
+
+        if msg == "function action":
+            continue
 
         # Check for exit
         if msg == 'exit':
@@ -66,6 +75,30 @@ def join_room(roomName, client):
             room.userList.append(client)
 
 
+def interpreter(msg, user):
+    msgArray = msg.split()
+
+    # If it doesn't have the function indicator("/") it returns the message to send to the chat
+    if msgArray[0][0] != "/":
+        return msg
+
+    #   (/create roomName)
+    if msgArray[0] == "/create":
+        print("Create")
+        create_room(msgArray[1], user)
+    if msgArray[0] == "/join":
+        print("join - not implement")
+    if msgArray[0] == "/kick":
+        print("kick - not implement")
+    if msgArray[0] == "/ban":
+        print("ban - not implement")
+    if msgArray[0] == "/whisper":
+        print("whisper - not implement")
+
+
+    return "function action"
+
+
 # roomList = [create_room("#Geral", )]
 connectionList = []
 
@@ -92,6 +125,7 @@ while True:
     for user in connectionList:
         msgSend = "User {} has appeared".format(username)
         user.sendall(msgSend.encode())
+
     connectionList.append(client_connection)
     # Cria thread
     thread = threading.Thread(target=handle_client, args=(username, client_connection))

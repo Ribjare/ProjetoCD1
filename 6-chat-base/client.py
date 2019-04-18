@@ -9,7 +9,6 @@ import threading
 isDeactive = False
 
 
-
 def handle_msg(client):
     while True:
         if isDeactive:
