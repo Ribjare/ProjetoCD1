@@ -7,10 +7,13 @@ import socket
 import threading
 from datetime import datetime
 
+# nao sei se isto é a melhor maneira
+dict = {"Geral": {"Name": "", "Userlist": []}};
+
 
 # class for a chat room
 class ChatRoom:
-
+    # se calhar era melhor um dicionario
     def __init__(self, name, moderator):
         self.name = name
         self.userList = []
@@ -22,59 +25,64 @@ class Client:
     def __init__(self, name, connection):
         self.name = name
         self.connection = connection
+        # in the beginning, the user start's in #Geral
+        self.currentRoom = "#Geral"
 
 
-def handle_client(name, client_connection):
+def handle_client(client):
     while True:
 
         # Print message from client
-        msg = client_connection.recv(1024).decode()
+        msg = client.connection.recv(1024).decode()
         now = datetime.now()
         print(now.strftime("%H:%M:%S"))
-        print('Received: ({}) - {}'.format(name, msg))
+        print('Received: ({}) - {}'.format(client.name, msg))
 
-        msg = interpreter(msg)
+        msg = interpreter(msg, client)
 
         if msg == "function action":
             continue
 
         # Check for exit
-        if msg == 'exit':
-            goodbyeMsg = "Goodbye {}".format(name)
+        if msg == 'exit function':
+            goodbyeMsg = "Goodbye {}".format(client.name)
             client_connection.sendall(goodbyeMsg.encode())
             break
 
         # Return message to client
         for user in connectionList:
-            if user != client_connection:
-                msgSend = "({}) {}".format(name, msg)
-                user.sendall(msgSend.encode())
+            if user != client:
+                msgSend = "({}) {}".format(client.name, msg)
+                user.connection.sendall(msgSend.encode())
 
     # Close client connection
     print('Client disconnected...')
-    connectionList.remove(client_connection)
-    for user in connectionList:
-        msgSend = "User {} has disconected".format(name)
-        user.sendall(msgSend.encode())
 
-    client_connection.close()
+    connectionList.remove(client)
+    # Send to the rest of the user's of the room
+    for user in connectionList:
+        msgSend = "User {} has disconected".format(client.name)
+        user.connection.sendall(msgSend.encode())
+
+    client.connection.close()
 
 
 # Create a new room
 def create_room(roomName, moderatorName):
     newRoom = ChatRoom(roomName, moderatorName)
-    connectionList.append(newRoom)
+    # connectionList.append(newRoom)
 
 
 # Join's a new room
 def join_room(roomName, client):
 
     # find if the room exist
-    for room in connectionList:
+    for room in roomList:
         if room.name == roomName:
             room.userList.append(client)
 
 
+# interpreter function
 def interpreter(msg, user):
     msgArray = msg.split()
 
@@ -94,12 +102,14 @@ def interpreter(msg, user):
         print("ban - not implement")
     if msgArray[0] == "/whisper":
         print("whisper - not implement")
-
+    if msgArray[0] == "/exit":
+        return "exit function"
 
     return "function action"
 
 
-# roomList = [create_room("#Geral", )]
+# create the first room
+# roomList = [create_room("Geral", "")]
 connectionList = []
 
 # Define socket host and port
@@ -117,18 +127,22 @@ while True:
     # Wait for client connections
     client_connection, client_address = server_socket.accept()
 
-    # waiting for the username
+    # Waiting for the username
     username = client_connection.recv(1024).decode()
+
+    client = Client(username, client_connection)
+
     msg = "You are now connected, {}!".format(username)
     client_connection.sendall(msg.encode())
+    client_connection.sendall("You are in #Geral".encode())
     # Send for all the user in the room
     for user in connectionList:
         msgSend = "User {} has appeared".format(username)
-        user.sendall(msgSend.encode())
+        user.connection.sendall(msgSend.encode())
 
-    connectionList.append(client_connection)
-    # Cria thread
-    thread = threading.Thread(target=handle_client, args=(username, client_connection))
+    connectionList.append(client)
+    # Create a thread to accommodate the client
+    thread = threading.Thread(target=handle_client, args=(client, ))
 
     thread.start()
 

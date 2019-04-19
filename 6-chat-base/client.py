@@ -9,6 +9,7 @@ import threading
 isDeactive = False
 
 
+# Receives from the server and handle them
 def handle_msg(client):
     while True:
         if isDeactive:
@@ -46,7 +47,7 @@ while True:
     client_socket.sendall(msg.encode())
 
     # Check for exit
-    if msg == 'exit':
+    if msg == '/exit':
         res = client_socket.recv(1024).decode()
         print(res)
         isDeactive = True
