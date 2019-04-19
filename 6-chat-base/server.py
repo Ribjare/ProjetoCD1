@@ -35,6 +35,7 @@ def handle_client(client):
         print('Received: ({}) - {}'.format(client.name, msg))
 
         msg = interpreter(msg, client)
+        room = find_chatroom(client.currentRoom)
 
         if msg == "function action":
             continue
@@ -46,7 +47,7 @@ def handle_client(client):
             break
 
         # Return message to client
-        for user in roomList[0].userList:
+        for user in room.userList:
             if user != client:
                 msgSend = "({}) {}".format(client.name, msg)
                 user.connection.sendall(msgSend.encode())
@@ -54,9 +55,9 @@ def handle_client(client):
     # Close client connection
     print('Client disconnected...')
 
-    roomList[0].userList.remove(client)
+    room.userList.remove(client)
     # Send to the rest of the user's of the room
-    for user in roomList[0].userList:
+    for user in room.userList:
         msgSend = "User {} has disconected".format(client.name)
         user.connection.sendall(msgSend.encode())
 
