@@ -43,7 +43,7 @@ def handle_client(client):
         # Check for exit
         if msg == 'exit function':
             goodbyeMsg = "Goodbye {}".format(client.name)
-            client_connection.sendall(goodbyeMsg.encode())
+            user.connection.sendall(goodbyeMsg.encode())
             break
 
         # Return message to client
@@ -71,12 +71,6 @@ def find_chatroom(room_name):
     return None
 
 
-# Create a new room
-def create_room(roomName, moderatorName):
-    newRoom = ChatRoom(roomName, moderatorName)
-    # connectionList.append(newRoom)
-
-
 # Join's a new room
 def join_room(roomName, client):
 
@@ -97,15 +91,20 @@ def interpreter(msg, user):
     #   (/create roomName)
     if msgArray[0] == "/create":
         print("Create")
-        create_room(msgArray[1], user)
+        user.connection.sendall("Not implemented")
+       # create_room(msgArray[1], user)
     if msgArray[0] == "/join":
         print("join - not implement")
+        user.connection.sendall("Not implemented")
     if msgArray[0] == "/kick":
         print("kick - not implement")
+        user.connection.sendall("Not implemented")
     if msgArray[0] == "/ban":
         print("ban - not implement")
+        user.connection.sendall("Not implemented")
     if msgArray[0] == "/whisper":
         print("whisper - not implement")
+        user.connection.sendall("Not implemented")
     if msgArray[0] == "/exit":
         return "exit function"
 
