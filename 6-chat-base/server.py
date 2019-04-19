@@ -7,13 +7,9 @@ import socket
 import threading
 from datetime import datetime
 
-# nao sei se isto é a melhor maneira
-dict = {"Geral": {"Name": "", "Userlist": []}};
-
 
 # class for a chat room
 class ChatRoom:
-    # se calhar era melhor um dicionario
     def __init__(self, name, moderator):
         self.name = name
         self.userList = []
@@ -50,7 +46,7 @@ def handle_client(client):
             break
 
         # Return message to client
-        for user in connectionList:
+        for user in roomList[0].userList:
             if user != client:
                 msgSend = "({}) {}".format(client.name, msg)
                 user.connection.sendall(msgSend.encode())
@@ -58,13 +54,20 @@ def handle_client(client):
     # Close client connection
     print('Client disconnected...')
 
-    connectionList.remove(client)
+    roomList[0].userList.remove(client)
     # Send to the rest of the user's of the room
-    for user in connectionList:
+    for user in roomList[0].userList:
         msgSend = "User {} has disconected".format(client.name)
         user.connection.sendall(msgSend.encode())
 
     client.connection.close()
+
+
+def find_chatroom(room_name):
+    for room in roomList:
+        if room.name == room_name:
+            return room
+    return None
 
 
 # Create a new room
@@ -109,8 +112,8 @@ def interpreter(msg, user):
 
 
 # create the first room
-# roomList = [create_room("Geral", "")]
-connectionList = []
+roomList = [ChatRoom("#Geral", "")]
+connectionList = []         # connection of user's
 
 # Define socket host and port
 SERVER_HOST = '0.0.0.0'
@@ -136,11 +139,14 @@ while True:
     client_connection.sendall(msg.encode())
     client_connection.sendall("You are in #Geral".encode())
     # Send for all the user in the room
+    '''
     for user in connectionList:
         msgSend = "User {} has appeared".format(username)
         user.connection.sendall(msgSend.encode())
-
     connectionList.append(client)
+    '''
+
+    roomList[0].userList.append(client)
     # Create a thread to accommodate the client
     thread = threading.Thread(target=handle_client, args=(client, ))
 
