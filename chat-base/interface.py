@@ -1,7 +1,6 @@
 from tkinter import*
 import tkinter as tk
 import tkinter.font
-# from client import *
 
 
 class Application(tk.Frame):
@@ -54,12 +53,9 @@ class Application(tk.Frame):
     # envia a mensagem escrita para o chat
     def send_msgs(self):
         print(format(self.text))
-        if self.text != "":
-            self.mensagem_text_box.insert(1, "")
-            self.mensagem_text_box.insert(2, "   " + self.text.get())
+        if self.text.get() != "":
+            self.mensagem_text_box.insert(2, "" + self.text.get())
         self.message.delete(0, 'end')
-
-
 
 
 root = tk.Tk()
