@@ -15,6 +15,10 @@ class ChatRoom:
         self.userList = []
         self.moderator = moderator
 
+    def __str__(self):
+        str = "Room : {} \n Moderator : {}".format(self.name, self.moderator)
+        return str
+
 
 # Class for the client
 class Client:
@@ -23,6 +27,10 @@ class Client:
         self.connection = connection
         # in the beginning, the user start's in #Geral
         self.currentRoom = "#Geral"
+
+    def __str__(self):
+        str = "Username : {}, Current Room : {}".format(self.name, self.currentRoom)
+        return str
 
 
 def handle_client(client):
@@ -43,7 +51,7 @@ def handle_client(client):
         # Check for exit
         if msg == 'exit function':
             goodbyeMsg = "Goodbye {}".format(client.name)
-            user.connection.sendall(goodbyeMsg.encode())
+            client.connection.sendall(goodbyeMsg.encode())
             break
 
         # Return message to client
@@ -78,6 +86,11 @@ def join_room(roomName, client):
     for room in roomList:
         if room.name == roomName:
             room.userList.append(client)
+            client.currentRoom = room
+
+
+def create_room(room_name, host_name):
+    roomList.append(ChatRoom("#" + room_name, host_name))
 
 
 # interpreter function
@@ -88,31 +101,53 @@ def interpreter(msg, user):
     if msgArray[0][0] != "/":
         return msg
 
+    elif msgArray[0] == "/help":
+        helpmsg = "Commands avaliable: \n" \
+                  "/create (room name); \n" \
+                  "/join (room name);\n"
+        user.connection.sendall(helpmsg.encode())
     #   (/create roomName)
-    if msgArray[0] == "/create":
-        print("Create")
-        user.connection.sendall("Not implemented")
-       # create_room(msgArray[1], user)
-    if msgArray[0] == "/join":
-        print("join - not implement")
-        user.connection.sendall("Not implemented")
-    if msgArray[0] == "/kick":
+    elif msgArray[0] == "/create":
+        print("Created the room {}".format(msgArray[1]))
+        # user.connection.sendall("Not implemented")
+        create_room(msgArray[1], user)
+
+    elif msgArray[0] == "/join":
+        # user.connection.sendall("Not implemented")
+        # user.connection.sendall("Not implemented")
+        join_room(msgArray[1], user)
+
+    elif msgArray[0] == "/kick":
         print("kick - not implement")
         user.connection.sendall("Not implemented")
-    if msgArray[0] == "/ban":
+
+    elif msgArray[0] == "/ban":
         print("ban - not implement")
         user.connection.sendall("Not implemented")
-    if msgArray[0] == "/whisper":
+
+    elif msgArray[0] == "/whisper":
         print("whisper - not implement")
         user.connection.sendall("Not implemented")
-    if msgArray[0] == "/exit":
+
+    elif msgArray[0] == "/list":
+        str = "List of Rooms:\n"
+        for room in roomList:
+            str += room.__str__() + "\n"
+        user.connection.sendall(str.encode())
+
+    elif msgArray[0] == "/userlist":
+        for room in roomList:
+            for user in room.userList:
+                print(user)
+
+    elif msgArray[0] == "/exit":
         return "exit function"
 
     return "function action"
 
 
 # create the first room
-roomList = [ChatRoom("#Geral", "")]
+roomList = [ChatRoom("#Geral", "No One")]
 connectionList = []         # connection of user's
 
 # Define socket host and port
@@ -139,12 +174,12 @@ while True:
     client_connection.sendall(msg.encode())
     client_connection.sendall("You are in #Geral".encode())
     # Send for all the user in the room
-    '''
-    for user in connectionList:
+
+    for user in roomList[0].userList:
         msgSend = "User {} has appeared".format(username)
         user.connection.sendall(msgSend.encode())
     connectionList.append(client)
-    '''
+
 
     roomList[0].userList.append(client)
     # Create a thread to accommodate the client
