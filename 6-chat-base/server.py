@@ -112,7 +112,7 @@ def join_room(roomName, client):
 
     # Send a msg to the user
     str = "You are now in {}".format(roomName)
-    client_connection.sendall(str.encode())
+    client.connection.sendall(str.encode())
 
     # alert the another users of the room
     msgSend = "User {} has appeared".format(client.name)
@@ -149,7 +149,7 @@ def interpreter(msg, client):
     elif msgArray[0] == "/help":
         helpmsg = "Commands available: \n" \
                   "/create (room name) - Creates a new room; \n" \
-                  "/join (room name) - Join a existing room;\n" \
+                  "/join #(room name) - Join a existing room;\n" \
                   "/userlist - Show's the online users; \n" \
                   "/list - Show's all the existing rooms;\n" \
                   "/kick - Kick's a user from a chat room (Moderator);\n" \
@@ -172,7 +172,7 @@ def interpreter(msg, client):
             join_room(msgArray[1], client)
         except ValueError as error:
             print(error)
-            client_connection.sendall(error.__str__().encode())
+            client.connection.sendall(error.__str__().encode())
 
     # kick a user - moderator command
     elif msgArray[0] == "/kick":
@@ -185,7 +185,7 @@ def interpreter(msg, client):
             roomList[0].userList.append(userKick)
             userKick.connection.sendall(("You got kicked from " + room.name).encode())
             userKick.connection.sendall("You are now in #Geral".encode())
-            warningMSG = "User {] was kicked from this room".format(userKick.name)
+            warningMSG = "User {} was kicked from this room".format(userKick.name)
             for users in room.userList:
                 users.connection.sendall(warningMSG.encode())
         else:
@@ -275,7 +275,6 @@ while True:
     for user in roomList[0].userList:
         msgSend = "User {} has appeared".format(username)
         user.connection.sendall(msgSend.encode())
-    connectionList.append(client)
 
     roomList[0].userList.append(client)
     # Create a thread to accommodate the client
