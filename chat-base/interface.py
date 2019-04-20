@@ -50,6 +50,10 @@ class Application(tk.Frame):
 
         self.quit.pack(side=BOTTOM)
 
+        self.add_chatroom_name("")
+        self.add_user("")
+
+    # corta a mensagem, se for demasiado longa
     def cut_message(self, msg):
         msgArray = msg.split()
         txt_1 = ""
@@ -67,12 +71,33 @@ class Application(tk.Frame):
     def send_msgs(self):
         print(format(self.text))
         if self.text.get() != "":
-            if self.text.get().__sizeof__() >= 20:
-                cut_text = self.cut_message(self.text.get())
-                # cut_text.reverse()
-                self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[0])
-                self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])
+            if not self.text.get().startswith("/"):
+                if self.text.get().__sizeof__() >= 20:
+                    cut_text = self.cut_message(self.text.get())
+                    # cut_text.reverse()
+                    self.mensagem_text_box.insert(self.mensagem_text_box.size(), "[Bob]: " + cut_text[0])
+                    self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])
+            if self.text.get().startswith("/"):
+                self.interpret_message()
         self.message.delete(0, 'end')
+
+    def interpret_message(self):
+        text_split = self.text.get().split()
+        if text_split[0] == "/create":
+            self.add_chatroom_name(text_split[1])
+            print(text_split[1])
+
+    # adiciona um utilizador à lista
+    def add_user(self, name):
+        self.members_text_box.insert(self.members_text_box.size(), "Bob")
+        if name != "":
+            self.members_text_box.insert(self.members_text_box.size(), "#" + name)
+
+    # adiciona um chatroom à lista
+    def add_chatroom_name(self, name):
+        self.chat_room_text_box.insert(0, "#Geral")
+        if name != "":
+            self.chat_room_text_box.insert(self.chat_room_text_box.size(), "#" + name)
 
 
 root = tk.Tk()
