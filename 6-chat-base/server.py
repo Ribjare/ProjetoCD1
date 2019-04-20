@@ -83,10 +83,14 @@ def find_chatroom(room_name):
 def join_room(roomName, client):
 
     # find if the room exist
-    for room in roomList:
-        if room.name == roomName:
-            room.userList.append(client)
-            client.currentRoom = room
+    room = find_chatroom(roomName)
+    if room is None:
+        client.connection.sendall("Room not existent")
+        return
+    room.userList.append(client)
+    exRoom = find_chatroom(client.currentRoom)
+    exRoom.userList.remove(client)
+    client.currentRoom = room.name
 
 
 def create_room(room_name, host_name):
@@ -101,46 +105,58 @@ def interpreter(msg, user):
     if msgArray[0][0] != "/":
         return msg
 
+    # send the collection of commands available
     elif msgArray[0] == "/help":
-        helpmsg = "Commands avaliable: \n" \
-                  "/create (room name); \n" \
-                  "/join (room name);\n"
+        helpmsg = "Commands available: \n" \
+                  "/create (room name) - Creates a new room; \n" \
+                  "/join (room name) - Join a existing room;\n" \
+                  "/userlist - Show's the online user; \n" \
+                  "/list - Show's all the existing rooms;"
         user.connection.sendall(helpmsg.encode())
 
-    #   (/create roomName)
+    #   creates a new room
     elif msgArray[0] == "/create":
         print("Created the room {}".format(msgArray[1]))
         # user.connection.sendall("Not implemented")
         create_room(msgArray[1], user)
 
+    # join's a room
     elif msgArray[0] == "/join":
-        # user.connection.sendall("Not implemented")
         # user.connection.sendall("Not implemented")
         join_room(msgArray[1], user)
 
+    # kick a user - moderator command
     elif msgArray[0] == "/kick":
         print("kick - not implement")
         user.connection.sendall("Not implemented")
 
+    # ban a user - moderator command
     elif msgArray[0] == "/ban":
         print("ban - not implement")
         user.connection.sendall("Not implemented")
 
+    # send a private message to a user
     elif msgArray[0] == "/whisper":
         print("whisper - not implement")
         user.connection.sendall("Not implemented")
 
+    # list's all the available rooms
     elif msgArray[0] == "/list":
         str = "List of Rooms:\n"
         for room in roomList:
             str += room.__str__() + "\n"
         user.connection.sendall(str.encode())
 
+    # list's all the online users
     elif msgArray[0] == "/userlist":
+        str = "User list: \n"
         for room in roomList:
             for user in room.userList:
                 print(user)
+                str += user.__str__() + "\n"
+        user.connection.sendall(str.encode())
 
+    # exit command
     elif msgArray[0] == "/exit":
         return "exit function"
 
@@ -180,7 +196,6 @@ while True:
         msgSend = "User {} has appeared".format(username)
         user.connection.sendall(msgSend.encode())
     connectionList.append(client)
-
 
     roomList[0].userList.append(client)
     # Create a thread to accommodate the client
