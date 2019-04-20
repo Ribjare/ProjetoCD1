@@ -13,7 +13,7 @@ class ChatRoom:
     def __init__(self, name, moderator):
         self.name = name
         self.userList = []
-        self.moderator = moderator
+        self.moderator = [moderator]
 
     def __str__(self):
         str = "Room : {} \n Moderator : {}".format(self.name, self.moderator)
@@ -81,27 +81,30 @@ def find_chatroom(room_name):
 
 
 def find_user_in_room(username, room):
-    for user in room.userList:
-        if user.name == username:
-            return user
+    for use in room.userList:
+        if use.name == username:
+            return use
     return None
 
 
 def find_user(username):
     for room in roomList:
-        for user in room.userList:
-            if user.name == username:
-                return user
+        for use in room.userList:
+            if use.name == username:
+                return use
     return None
+
 
 # Join's a new room
 def join_room(roomName, client):
 
     # find if the room exist
     room = find_chatroom(roomName)
+
     if room is None:
         client.connection.sendall("Room not existent")
-        return
+        raise ValueError("Room not existent")
+
     room.userList.append(client)
     exRoom = find_chatroom(client.currentRoom)
     exRoom.userList.remove(client)
@@ -118,8 +121,20 @@ def join_room(roomName, client):
 
 
 def create_room(room_name, host):
+    room = find_chatroom("#"+room_name)
+    if room is not None:
+        raise ValueError("Name already in use")
+
     roomList.append(ChatRoom("#" + room_name, host.name))
     host.connection.sendall(("The room #" + room_name + " was created").encode())
+
+
+def is_mod_in_room(use, room):
+    for mods in room.moderator:
+        print(mods + " == " + use.name)
+        if mods == use.name:
+            return True
+    return False
 
 
 # interpreter function
@@ -138,43 +153,63 @@ def interpreter(msg, client):
                   "/userlist - Show's the online users; \n" \
                   "/list - Show's all the existing rooms;\n" \
                   "/kick - Kick's a user from a chat room (Moderator);\n" \
-                  "/whisper - Send a private message to a user; \n"
+                  "/whisper (username) (msg) - Send a private message to a user; \n" \
+                  "/givemod (username) - Gives moderator status in your room (Moderator)"
         client.connection.sendall(helpmsg.encode())
 
     #   creates a new room
     elif msgArray[0] == "/create":
-        print("Created the room {}".format(msgArray[1]))
-        # user.connection.sendall("Not implemented")
-        create_room(msgArray[1], client)
+        try:
+            create_room(msgArray[1], client)
+            print("Created the room {}".format(msgArray[1]))
+        except ValueError as error:
+            print(error)
+            client.connection.sendall(error.__str__().encode())
 
     # join's a room
     elif msgArray[0] == "/join":
-        # user.connection.sendall("Not implemented")
-        join_room(msgArray[1], client)
+        try:
+            join_room(msgArray[1], client)
+        except ValueError as error:
+            print(error)
+            client_connection.sendall(error.__str__().encode())
 
     # kick a user - moderator command
     elif msgArray[0] == "/kick":
         room = find_chatroom(client.currentRoom)
-
         userKick = find_user_in_room(msgArray[1], room)
 
-        if room.moderator != client.name:
-            client.connection.sendall("You don't have permission in this room".encode())
-        else:
+        if is_mod_in_room(client, room):
             room.userList.remove(userKick)
             userKick.currentRoom = "#Geral"
             roomList[0].userList.append(userKick)
             userKick.connection.sendall(("You got kicked from " + room.name).encode())
             userKick.connection.sendall("You are now in #Geral".encode())
+            warningMSG = "User {] was kicked from this room".format(userKick.name)
+            for users in room.userList:
+                users.connection.sendall(warningMSG.encode())
+        else:
+            client.connection.sendall("You don't have permission in this room".encode())
 
-    # ban a user for a time - moderator command
+    # ban a user for a time or permanent - moderator command
     elif msgArray[0] == "/ban":
+
         print("ban - not implement")
         client.connection.sendall("Not implemented".encode())
 
+    # give mod to another person
     elif msgArray[0] == "/givemod":
-        print("givemod - not implement")
-        client.connection.sendall("Not implemented".encode())
+        room = find_chatroom(client.currentRoom)
+
+        if is_mod_in_room(client, room):
+            target = find_user_in_room(msgArray[1], room)
+            print(target)
+            room.moderator.append(target.name)
+            target.connection.sendall(("Congratulations!!! You are a mod in " + room.name).encode())
+
+        else:
+            client.connection.sendall("You don't have permission in this room".encode())
+
     # send a private message to a user
     elif msgArray[0] == "/whisper":
         target = find_user(msgArray[1])
