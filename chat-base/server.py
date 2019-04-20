@@ -14,6 +14,7 @@ class ChatRoom:
         self.name = name
         self.userList = []
         self.moderator = [moderator]
+        self.banList = []
 
     def __str__(self):
         str = "Room : {} \n Moderator : {}".format(self.name, self.moderator)
@@ -35,7 +36,7 @@ class Client:
 
 def handle_client(client):
     while True:
-
+        #client.connection.sendall("Write /help to see all the commands".encode())
         # Print message from client
         msg = client.connection.recv(1024).decode()
         now = datetime.now()
@@ -87,6 +88,13 @@ def find_user_in_room(username, room):
     return None
 
 
+def is_user_banned(name, room):
+    for clients in room.banList:
+        if clients == name:
+            return True
+    return False
+
+
 def find_user(username):
     for room in roomList:
         for use in room.userList:
@@ -105,6 +113,9 @@ def join_room(roomName, client):
         client.connection.sendall("Room not existent")
         raise ValueError("Room not existent")
 
+    if is_user_banned(client.name, room):
+        raise ValueError("User is banned from this room")
+
     room.userList.append(client)
     exRoom = find_chatroom(client.currentRoom)
     exRoom.userList.remove(client)
@@ -116,8 +127,8 @@ def join_room(roomName, client):
 
     # alert the another users of the room
     msgSend = "User {} has appeared".format(client.name)
-    for user in room.userList:
-        user.connection.sendall(msgSend.encode())
+    for use in room.userList:
+        use.connection.sendall(msgSend.encode())
 
 
 def create_room(room_name, host):
@@ -152,9 +163,10 @@ def interpreter(msg, client):
                   "/join #(room name) - Join a existing room;\n" \
                   "/userlist - Show's the online users; \n" \
                   "/list - Show's all the existing rooms;\n" \
-                  "/kick - Kick's a user from a chat room (Moderator);\n" \
+                  "/kick (username) - Kick's a user from a chat room (Moderator);\n" \
+                  "/ban (username) - Permentaly ban's a user from a chat room (Moderator); \n" \
                   "/whisper (username) (msg) - Send a private message to a user; \n" \
-                  "/givemod (username) - Gives moderator status in your room (Moderator)"
+                  "/givemod (username) - Gives moderator status in your room (Moderator)\n"
         client.connection.sendall(helpmsg.encode())
 
     #   creates a new room
@@ -175,7 +187,7 @@ def interpreter(msg, client):
         except ValueError as error:
             print(error)
             client.connection.sendall(error.__str__().encode())
-        except IndexError as error:
+        except IndexError:
             client.connection.sendall("It need's a second argument".encode())
 
     # kick a user - moderator command
@@ -201,8 +213,18 @@ def interpreter(msg, client):
     # ban a user for a time or permanent - moderator command
     elif msgArray[0] == "/ban":
 
-        print("ban - not implement")
-        client.connection.sendall("Not implemented".encode())
+        room = find_chatroom(client.currentRoom)
+        if not is_mod_in_room(client, room):
+            raise ValueError("It's not mod")
+        userBan = find_user_in_room(msgArray[1], room)
+        room.banList.append(userBan.name)
+
+        roomList[0].userList.append(userBan)
+        userBan.connection.sendall(("You got banned from " + room.name).encode())
+        userBan.connection.sendall("You are now in #Geral".encode())
+        warningMSG = "User {} was banned from this room".format(userBan.name)
+        for users in room.userList:
+            users.connection.sendall(warningMSG.encode())
 
     # give mod to another person
     elif msgArray[0] == "/givemod":
@@ -224,7 +246,7 @@ def interpreter(msg, client):
             if target is None:
                 client.connection.sendall("")
             else:
-                str = "({} whispers: ".format(client.name)
+                str = "{} whispers: ".format(client.name)
                 for x in msgArray[2:]:
                     str += x + " "
                 target.connection.sendall(str.encode())
@@ -246,6 +268,9 @@ def interpreter(msg, client):
                 str += user.__str__() + "\n"
         client.connection.sendall(str.encode())
 
+    # Send a mensage to all the user's in the server (Super Mod)
+    elif msgArray[0] == "broadcast":
+
     # exit command
     elif msgArray[0] == "/exit":
         return "exit function"
@@ -255,7 +280,8 @@ def interpreter(msg, client):
 
 # create the first room
 roomList = [ChatRoom("#Geral", "No One")]
-connectionList = []         # connection of user's
+
+superAdminList = []
 
 # Define socket host and port
 SERVER_HOST = '0.0.0.0'
