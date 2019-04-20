@@ -185,7 +185,7 @@ def interpreter(msg, client):
             roomList[0].userList.append(userKick)
             userKick.connection.sendall(("You got kicked from " + room.name).encode())
             userKick.connection.sendall("You are now in #Geral".encode())
-            warningMSG = "User {] was kicked from this room".format(userKick.name)
+            warningMSG = "User {} was kicked from this room".format(userKick.name)
             for users in room.userList:
                 users.connection.sendall(warningMSG.encode())
         else:
