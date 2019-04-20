@@ -92,9 +92,19 @@ def join_room(roomName, client):
     exRoom.userList.remove(client)
     client.currentRoom = room.name
 
+    # Send a msg to the user
+    str = "You are now in {}".format(roomName)
+    client_connection.sendall(str.encode())
 
-def create_room(room_name, host_name):
-    roomList.append(ChatRoom("#" + room_name, host_name))
+    # alert the another users of the room
+    msgSend = "User {} has appeared".format(client.name)
+    for user in room.userList:
+        user.connection.sendall(msgSend.encode())
+
+
+def create_room(room_name, host):
+    roomList.append(ChatRoom("#" + room_name, host.name))
+    host.connection.sendall(("The room #" + room_name + " was created").encode())
 
 
 # interpreter function
