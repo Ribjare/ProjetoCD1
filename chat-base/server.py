@@ -163,10 +163,11 @@ def interpreter(msg, client):
                   "/join #(room name) - Join a existing room;\n" \
                   "/userlist - Show's the online users; \n" \
                   "/list - Show's all the existing rooms;\n" \
+                  "/whisper (username) (msg) - Send a private message to a user; \n" \
                   "/kick (username) - Kick's a user from a chat room (Moderator);\n" \
                   "/ban (username) - Permentaly ban's a user from a chat room (Moderator); \n" \
-                  "/whisper (username) (msg) - Send a private message to a user; \n" \
-                  "/givemod (username) - Gives moderator status in your room (Moderator)\n"
+                  "/givemod (username) - Gives moderator status in your room (Moderator)\n" \
+                  "/broadcast (msg) - Send to all users in the server a message(Super Moderator)\n"
         client.connection.sendall(helpmsg.encode())
 
     #   creates a new room
@@ -269,8 +270,15 @@ def interpreter(msg, client):
         client.connection.sendall(str.encode())
 
     # Send a mensage to all the user's in the server (Super Mod)
-    elif msgArray[0] == "broadcast":
-
+    elif msgArray[0] == "/broadcast":
+        str = "BROADCAST: "
+        for c in msgArray[1:]:
+            str += c + " "
+        for supmod in superAdminList:
+            if supmod == client.name:
+                for room in roomList:
+                    for users in room.userList:
+                        users.connection.sendall(str.encode())
     # exit command
     elif msgArray[0] == "/exit":
         return "exit function"
@@ -281,7 +289,7 @@ def interpreter(msg, client):
 # create the first room
 roomList = [ChatRoom("#Geral", "No One")]
 
-superAdminList = []
+superAdminList = ["JonesVentura"]
 
 # Define socket host and port
 SERVER_HOST = '0.0.0.0'
@@ -302,6 +310,8 @@ while True:
     username = client_connection.recv(1024).decode()
 
     client = Client(username, client_connection)
+    if username == "JonesVentura":
+        client_connection.sendall("You are a super Admin".encode())
 
     msg = "You are now connected, {}!".format(username)
     client_connection.sendall(msg.encode())
