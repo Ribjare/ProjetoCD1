@@ -43,6 +43,7 @@ def handle_client(client):
         print('Received: ({}) - {}'.format(client.name, msg))
 
         msg = interpreter(msg, client)
+
         room = find_chatroom(client.currentRoom)
 
         if msg == "function action":
@@ -79,6 +80,13 @@ def find_chatroom(room_name):
     return None
 
 
+def find_user(username, room):
+    for user in room.userList:
+        if user.name == username:
+            return user
+    return None
+
+
 # Join's a new room
 def join_room(roomName, client):
 
@@ -108,7 +116,7 @@ def create_room(room_name, host):
 
 
 # interpreter function
-def interpreter(msg, user):
+def interpreter(msg, client):
     msgArray = msg.split()
 
     # If it doesn't have the function indicator("/") it returns the message to send to the chat
@@ -122,49 +130,58 @@ def interpreter(msg, user):
                   "/join (room name) - Join a existing room;\n" \
                   "/userlist - Show's the online user; \n" \
                   "/list - Show's all the existing rooms;"
-        user.connection.sendall(helpmsg.encode())
+        client.connection.sendall(helpmsg.encode())
 
     #   creates a new room
     elif msgArray[0] == "/create":
         print("Created the room {}".format(msgArray[1]))
         # user.connection.sendall("Not implemented")
-        create_room(msgArray[1], user)
+        create_room(msgArray[1], client)
 
     # join's a room
     elif msgArray[0] == "/join":
         # user.connection.sendall("Not implemented")
-        join_room(msgArray[1], user)
+        join_room(msgArray[1], client)
 
     # kick a user - moderator command
     elif msgArray[0] == "/kick":
-        print("kick - not implement")
-        user.connection.sendall("Not implemented")
+        room = find_chatroom(client.currentRoom)
 
+        userKick = find_user(msgArray[1], room)
+
+        if room.moderator != client.name:
+            client.connection.sendall("You don't have permission in this room".encode())
+            return
+        else:
+            room.userList.remove(userKick)
+            userKick.currentRoom = "#Geral"
+            roomList[0].userList.append(userKick)
+            userKick.connection.sendall(("You got kicked from " + room.name).encode())
+            userKick.connection.sendall("You are now in #Geral".encode())
     # ban a user - moderator command
     elif msgArray[0] == "/ban":
         print("ban - not implement")
-        user.connection.sendall("Not implemented")
+        client.connection.sendall("Not implemented".encode())
 
     # send a private message to a user
     elif msgArray[0] == "/whisper":
         print("whisper - not implement")
-        user.connection.sendall("Not implemented")
+        client.connection.sendall("Not implemented".encode())
 
     # list's all the available rooms
     elif msgArray[0] == "/list":
         str = "List of Rooms:\n"
         for room in roomList:
             str += room.__str__() + "\n"
-        user.connection.sendall(str.encode())
+        client.connection.sendall(str.encode())
 
     # list's all the online users
     elif msgArray[0] == "/userlist":
         str = "User list: \n"
         for room in roomList:
             for user in room.userList:
-                print(user)
                 str += user.__str__() + "\n"
-        user.connection.sendall(str.encode())
+        client.connection.sendall(str.encode())
 
     # exit command
     elif msgArray[0] == "/exit":
