@@ -106,6 +106,7 @@ def interpreter(msg, user):
                   "/create (room name); \n" \
                   "/join (room name);\n"
         user.connection.sendall(helpmsg.encode())
+
     #   (/create roomName)
     elif msgArray[0] == "/create":
         print("Created the room {}".format(msgArray[1]))
