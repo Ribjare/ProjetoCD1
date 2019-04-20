@@ -112,7 +112,7 @@ def join_room(roomName, client):
 
     # Send a msg to the user
     str = "You are now in {}".format(roomName)
-    client_connection.sendall(str.encode())
+    client.connection.sendall(str.encode())
 
     # alert the another users of the room
     msgSend = "User {} has appeared".format(client.name)
@@ -149,7 +149,7 @@ def interpreter(msg, client):
     elif msgArray[0] == "/help":
         helpmsg = "Commands available: \n" \
                   "/create (room name) - Creates a new room; \n" \
-                  "/join (room name) - Join a existing room;\n" \
+                  "/join #(room name) - Join a existing room;\n" \
                   "/userlist - Show's the online users; \n" \
                   "/list - Show's all the existing rooms;\n" \
                   "/kick - Kick's a user from a chat room (Moderator);\n" \
@@ -165,6 +165,8 @@ def interpreter(msg, client):
         except ValueError as error:
             print(error)
             client.connection.sendall(error.__str__().encode())
+        except IndexError as error:
+            client.connection.sendall("It need's a second argument".encode())
 
     # join's a room
     elif msgArray[0] == "/join":
@@ -172,24 +174,29 @@ def interpreter(msg, client):
             join_room(msgArray[1], client)
         except ValueError as error:
             print(error)
-            client_connection.sendall(error.__str__().encode())
+            client.connection.sendall(error.__str__().encode())
+        except IndexError as error:
+            client.connection.sendall("It need's a second argument".encode())
 
     # kick a user - moderator command
     elif msgArray[0] == "/kick":
         room = find_chatroom(client.currentRoom)
-        userKick = find_user_in_room(msgArray[1], room)
+        try:
+            userKick = find_user_in_room(msgArray[1], room)
 
-        if is_mod_in_room(client, room):
-            room.userList.remove(userKick)
-            userKick.currentRoom = "#Geral"
-            roomList[0].userList.append(userKick)
-            userKick.connection.sendall(("You got kicked from " + room.name).encode())
-            userKick.connection.sendall("You are now in #Geral".encode())
-            warningMSG = "User {} was kicked from this room".format(userKick.name)
-            for users in room.userList:
-                users.connection.sendall(warningMSG.encode())
-        else:
-            client.connection.sendall("You don't have permission in this room".encode())
+            if is_mod_in_room(client, room):
+                room.userList.remove(userKick)
+                userKick.currentRoom = "#Geral"
+                roomList[0].userList.append(userKick)
+                userKick.connection.sendall(("You got kicked from " + room.name).encode())
+                userKick.connection.sendall("You are now in #Geral".encode())
+                warningMSG = "User {} was kicked from this room".format(userKick.name)
+                for users in room.userList:
+                    users.connection.sendall(warningMSG.encode())
+            else:
+                client.connection.sendall("You don't have permission in this room".encode())
+        except IndexError as error:
+            client.connection.sendall("It need's a second argument".encode())
 
     # ban a user for a time or permanent - moderator command
     elif msgArray[0] == "/ban":
@@ -212,14 +219,17 @@ def interpreter(msg, client):
 
     # send a private message to a user
     elif msgArray[0] == "/whisper":
-        target = find_user(msgArray[1])
-        if target is None:
-            client.connection.sendall("")
-        else:
-            str = "({} whispers: ".format(client.name)
-            for x in msgArray[2:]:
-                str += x + " "
-            target.connection.sendall(str.encode())
+        try:
+            target = find_user(msgArray[1])
+            if target is None:
+                client.connection.sendall("")
+            else:
+                str = "({} whispers: ".format(client.name)
+                for x in msgArray[2:]:
+                    str += x + " "
+                target.connection.sendall(str.encode())
+        except IndexError as error:
+            client.connection.sendall("It need's a second argument".encode())
 
     # list's all the available rooms
     elif msgArray[0] == "/list":
@@ -275,7 +285,6 @@ while True:
     for user in roomList[0].userList:
         msgSend = "User {} has appeared".format(username)
         user.connection.sendall(msgSend.encode())
-    connectionList.append(client)
 
     roomList[0].userList.append(client)
     # Create a thread to accommodate the client
