@@ -100,6 +100,7 @@ class Application(tk.Frame):
             self.chat_room_text_box.insert(self.chat_room_text_box.size(), "#" + name)
 
 
+
 root = tk.Tk()
 root.geometry("1250x680")
 root.resizable(0, 0)
