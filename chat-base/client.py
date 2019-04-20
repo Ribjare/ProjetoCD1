@@ -2,9 +2,9 @@
  Implements a simple socket client
 
 """
-
 import socket
 import threading
+from interface import *
 
 isDeactive = False
 
@@ -19,6 +19,11 @@ def handle_msg(client):
         print(res)
 
 
+#def send_message():
+ #   msg = interface.write_message
+  #  client_socket.sendall(msg.encode())
+
+
 # Define socket host and port
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 8000
@@ -31,6 +36,7 @@ client_socket.connect((SERVER_HOST, SERVER_PORT))
 
 # First connection send username
 print("$ Username?")
+# msg = interface.write_message
 msg = input('> ')
 client_socket.sendall(msg.encode())
 res = client_socket.recv(1024).decode()
@@ -43,7 +49,7 @@ thread.start()
 while True:
 
     # Send message
-    msg = input('')
+    msg = input("")
     client_socket.sendall(msg.encode())
 
     # Check for exit
@@ -52,6 +58,7 @@ while True:
         print(res)
         isDeactive = True
         break
+
 
 
 
