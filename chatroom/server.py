@@ -211,8 +211,6 @@ def interpreter(msg, client):
         try:
             userKick = find_user_in_room(msgArray[1], kickroom)
             if is_mod_in_room(client, kickroom):
-                kickroom.userList.remove(userKick)
-
                 userKick.connection.sendall(("You got kicked from " + kickroom.name).encode())
 
                 join_room("#Geral", userKick)
