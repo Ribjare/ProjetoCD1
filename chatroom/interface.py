@@ -1,8 +1,8 @@
 from tkinter import*
 import tkinter as tk
 import tkinter.font
-import chatroom.client as Client
-from chatroom.client import *
+# import chatroom.client as Client
+# from chatroom.client import *
 
 
 class Application(tk.Frame):
@@ -10,6 +10,7 @@ class Application(tk.Frame):
         super().__init__(master)
         self.pack()
         self.create_widgets()
+        self.lista_msg = []
 
     # cria os widgets
     def create_widgets(self):
@@ -72,13 +73,16 @@ class Application(tk.Frame):
         if self.text.get() != "":
             if not self.text.get().startswith("/"):
                 if self.text.get().__sizeof__() >= 20:
-                    Client.send_message(self.text.get())
+                    self.lista_msg.insert(self.lista_msg.__sizeof__(), self.text.get())
                     cut_text = self.cut_message(self.text.get())
                     self.mensagem_text_box.insert(self.mensagem_text_box.size(), "[Bob]: " + cut_text[0])
                     self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])
             if self.text.get().startswith("/"):
                 self.interpret_message()
         self.message.delete(0, 'end')
+
+    def get_from_list(self):
+        return self.lista_msg.pop()
 
     def interpret_message(self):
         text_split = self.text.get().split()
