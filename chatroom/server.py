@@ -213,8 +213,10 @@ def interpreter(msg, client):
             if is_mod_in_room(client, kickroom):
                 userKick.connection.sendall(("You got kicked from " + kickroom.name).encode())
 
+                # put the target user in #Geral Room
                 join_room("#Geral", userKick)
 
+                # Alert another user
                 warningMSG = "User {} was kicked from this room".format(userKick.name)
                 for users in kickroom.userList:
                     users.connection.sendall(warningMSG.encode())
@@ -234,8 +236,10 @@ def interpreter(msg, client):
 
         userBan.connection.sendall(("You got banned from " + room.name).encode())
 
+        # put the target user in #Geral Room
         join_room("#Geral", userBan)
 
+        # Alert another user
         warningMSG = "User {} was banned from this room".format(userBan.name)
         for users in room.userList:
             users.connection.sendall(warningMSG.encode())
@@ -245,8 +249,8 @@ def interpreter(msg, client):
         room = find_chatroom(client.currentRoom)
 
         if is_mod_in_room(client, room):
+
             target = find_user_in_room(msgArray[1], room)
-            print(target)
             room.moderator.append(target.name)
             target.connection.sendall(("Congratulations!!! You are a mod in " + room.name).encode())
 
