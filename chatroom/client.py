@@ -86,7 +86,6 @@ class Client(tk.Frame):
         send_msg(self.text.get())
         if self.text.get() != "":
             if self.text.get().__sizeof__() >= 20:
-                # self.lista_msg.insert(self.lista_msg.__sizeof__(), self.text.get())
                 cut_text = self.cut_message(self.text.get())
                 self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[0])
                 self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])

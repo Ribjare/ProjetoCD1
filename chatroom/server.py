@@ -152,7 +152,6 @@ def join_room(roomName, client):
 
 def is_mod_in_room(use, room):
     for mods in room.moderator:
-        print(mods + " == " + use.name)
         if mods == use.name:
             return True
     return False
@@ -208,22 +207,22 @@ def interpreter(msg, client):
 
     # kick a user - moderator command
     elif msgArray[0] == "/kick":
-        room = find_chatroom(client.currentRoom)
+        kickroom = find_chatroom(client.currentRoom)
         try:
-            userKick = find_user_in_room(msgArray[1], room)
+            userKick = find_user_in_room(msgArray[1], kickroom)
+            if is_mod_in_room(client, kickroom):
+                kickroom.userList.remove(userKick)
 
-            if is_mod_in_room(client, room):
-                room.userList.remove(userKick)
-                userKick.connection.sendall(("You got kicked from " + room.name).encode())
+                userKick.connection.sendall(("You got kicked from " + kickroom.name).encode())
 
                 join_room("#Geral", userKick)
 
                 warningMSG = "User {} was kicked from this room".format(userKick.name)
-                for users in room.userList:
+                for users in kickroom.userList:
                     users.connection.sendall(warningMSG.encode())
             else:
                 client.connection.sendall("You don't have permission in this room".encode())
-        except IndexError as error:
+        except IndexError:
             client.connection.sendall("It need's a second argument".encode())
 
     # ban a user for a time or permanent - moderator command
@@ -232,7 +231,6 @@ def interpreter(msg, client):
         room = find_chatroom(client.currentRoom)
         if not is_mod_in_room(client, room):
             raise ValueError("It's not mod")
-
         userBan = find_user_in_room(msgArray[1], room)
         room.banList.append(userBan.name)
 
