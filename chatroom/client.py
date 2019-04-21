@@ -150,6 +150,7 @@ def send_msg(msg):
     client_socket.sendall(msg.encode())
 
 
+# Initializes the interface
 root = Tk()
 root.geometry("1250x680")
 root.resizable(0, 0)
@@ -171,7 +172,8 @@ client_socket.connect((SERVER_HOST, SERVER_PORT))
 # Create a thread to receive msg
 thread = threading.Thread(target=handle_msg, args=(client_socket, ))
 thread.start()
-# Starts
+
+# Starts the interface
 app.mainloop()
 
 # Close socket

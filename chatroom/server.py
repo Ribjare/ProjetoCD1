@@ -351,9 +351,9 @@ while True:
     if username == "JonesVentura":
         client_connection.sendall("You are a super Admin".encode())
 
-    msg = "You are now connected, {}!".format(username)
+    msg = "You are now connected, {}! \n You are in #Geral \n To see the command list type /help" \
+          "\n To exit the server type /exit".format(username)
     client_connection.sendall(msg.encode())
-    client_connection.sendall("You are in #Geral".encode())
 
     # Send for all the user in the room
     for user in roomList[0].userList:
