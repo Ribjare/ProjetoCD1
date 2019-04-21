@@ -43,7 +43,11 @@ def handle_client(client):
         print(now.strftime("%H:%M:%S"))
         print('Received: ({}) - {}'.format(client.name, msg))
 
-        msg = interpreter(msg, client)
+        try:
+            msg = interpreter(msg, client)
+        except ValueError as error:
+            print(error)
+            client.connection.sendall(error.__str__().encode())
 
         room = find_chatroom(client.currentRoom)
 
@@ -217,6 +221,7 @@ def interpreter(msg, client):
         room = find_chatroom(client.currentRoom)
         if not is_mod_in_room(client, room):
             raise ValueError("It's not mod")
+
         userBan = find_user_in_room(msgArray[1], room)
         room.banList.append(userBan.name)
 
@@ -271,14 +276,25 @@ def interpreter(msg, client):
 
     # Send a mensage to all the user's in the server (Super Mod)
     elif msgArray[0] == "/broadcast":
+
+        isSuperMod = False
         str = "BROADCAST: "
+        # make the message
         for c in msgArray[1:]:
             str += c + " "
+        # broadcast the message if the user is the super mod
         for supmod in superAdminList:
             if supmod == client.name:
-                for room in roomList:
-                    for users in room.userList:
-                        users.connection.sendall(str.encode())
+                isSuperMod = True
+                continue
+        if not isSuperMod:
+            raise ValueError("You are not super mod")
+
+        for room in roomList:
+            for users in room.userList:
+                users.connection.sendall(str.encode())
+
+
     # exit command
     elif msgArray[0] == "/exit":
         return "exit function"

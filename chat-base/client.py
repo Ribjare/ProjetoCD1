@@ -4,7 +4,7 @@
 """
 import socket
 import threading
-# from interface import *
+from .interface import *
 
 isDeactive = False
 
