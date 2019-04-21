@@ -342,6 +342,7 @@ while True:
         if find_user(client_connection.recv(1024).decode()) is not None:
             username = client_connection.recv(1024).decode()
 
+
     client = Client(username, client_connection)
     if username == "JonesVentura":
         client_connection.sendall("You are a super Admin".encode())
