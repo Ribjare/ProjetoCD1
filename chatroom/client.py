@@ -7,6 +7,7 @@ import threading
 if __name__ == '__main__':
     from chatroom.interface import Application
 
+
 isDeactive = False
 
 
