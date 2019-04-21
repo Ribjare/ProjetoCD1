@@ -169,7 +169,7 @@ def interpreter(msg, client):
     # send the collection of commands available
     elif msgArray[0] == "/help":
         helpmsg = "Commands available: \n" \
-                  "/create (room name) (password - optional ) - Creates a new room; \n" \
+                  "/create (room name) (password - optional) - Creates a new room; \n" \
                   "/join #(room name) - Join a existing room;\n" \
                   "/userlist - Show's the online users; \n" \
                   "/list - Show's all the existing rooms;\n" \
@@ -331,19 +331,23 @@ server_socket.bind((SERVER_HOST, SERVER_PORT))
 server_socket.listen(1)
 print('Listening on port %s ...' % SERVER_PORT)
 
-username = ""
 
 while True:
     # Wait for client connections
     client_connection, client_address = server_socket.accept()
 
     # Waiting for the username
-    while username == "":
-        if find_user(client_connection.recv(1024).decode()) is not None:
-            username = client_connection.recv(1024).decode()
 
+    while True:
+        username = client_connection.recv(1024).decode()
+        print(username)
+        if find_user(username) is None:
+            break
+        client_connection.sendall("$Username already taken, choose another one".encode())
 
     client = Client(username, client_connection)
+
+    # Reserverd name for the super admin
     if username == "JonesVentura":
         client_connection.sendall("You are a super Admin".encode())
 

@@ -92,7 +92,6 @@ class Client(tk.Frame):
                 self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])
         self.message.delete(0, 'end')
 
-
     # mensagens
     def display_server_messages(self):
         if n == 0:
@@ -106,9 +105,11 @@ class Client(tk.Frame):
     def recive_msgs_from_server(self, msg):
         if msg == "":
             return
+
         split = msg.split(" ")
-        if split[1] == "room" and split[4] == "created":
-            self.add_chatroom_name(split[2])
+        if len(split) >=2:
+            if split[1] == "room" and split[4] == "created":
+                self.add_chatroom_name(split[2])
 
         if msg.__sizeof__() >= 20:
             if "(" not in msg[1]:
@@ -167,38 +168,17 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # Connect to server
 client_socket.connect((SERVER_HOST, SERVER_PORT))
 
-# First connection send username
-#print("$ Username?")
-
-# msg = interface.write_message
-#name = input('> ')
-#client_socket.sendall(name.encode())
 
 # Create a thread to receive msg
 thread = threading.Thread(target=handle_msg, args=(client_socket, ))
 thread.start()
+# Starts
 app.mainloop()
-'''
-# Next msg
-while True:
-
-    # Send message
-    msg = input("")
-    client_socket.sendall(msg.encode())
-
-    # Check for exit
-    if msg == '/exit':
-        res = client_socket.recv(1024).decode()
-        print(res)
-        isDeactive = True
-        break
-'''
 
 # Close socket
 client_socket.close()
 
 
-# INTERFACE
 
 
 
