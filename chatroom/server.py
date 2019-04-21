@@ -288,13 +288,13 @@ def interpreter(msg, client):
             if supmod == client.name:
                 isSuperMod = True
                 continue
+
         if not isSuperMod:
             raise ValueError("You are not super mod")
 
         for room in roomList:
             for users in room.userList:
                 users.connection.sendall(str.encode())
-
 
     # exit command
     elif msgArray[0] == "/exit":
