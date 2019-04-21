@@ -231,6 +231,7 @@ def interpreter(msg, client):
         room = find_chatroom(client.currentRoom)
         if not is_mod_in_room(client, room):
             raise ValueError("It's not mod")
+
         userBan = find_user_in_room(msgArray[1], room)
         room.banList.append(userBan.name)
 

@@ -43,8 +43,12 @@ class Client(tk.Frame):
         self.send_msg = tk.Button(bot_frame)
 
         self.quit = tk.Button(self, text="QUIT", fg="red",
-                              command=self.master.destroy)
+                              command=self.quit_function)
         self.display_widgets()
+
+    def quit_function(self):
+        send_msg("/exit")
+        self.master.destroy()
 
     # Organiza os widgets usados
     def display_widgets(self):
