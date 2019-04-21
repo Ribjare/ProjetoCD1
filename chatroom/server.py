@@ -36,7 +36,7 @@ class Client:
 
 def handle_client(client):
     while True:
-        #client.connection.sendall("Write /help to see all the commands".encode())
+        # client.connection.sendall("Write /help to see all the commands".encode())
         # Print message from client
         msg = client.connection.recv(1024).decode()
         now = datetime.now()
