@@ -36,6 +36,8 @@ class Client(tk.Frame):
         self.chat_room_text_box = Listbox(top_frame, width=40, height=30)
         self.members_text_box = Listbox(top_frame, width=40, height=30)
 
+        self.chat_room_text_box.insert(0, "#Geral")
+
         self.text = StringVar()
         self.message = tk.Entry(bot_frame, textvariable=self.text, width=110)
         self.send_msg = tk.Button(bot_frame)
@@ -101,9 +103,12 @@ class Client(tk.Frame):
         print(username)
 
     # envia mensagens do server
-    def send_msgs_from_server(self, msg):
+    def recive_msgs_from_server(self, msg):
         if msg == "":
             return
+        split = msg.split(" ")
+        if split[1] == "room" and split[4] == "created":
+            self.add_chatroom_name(split[2])
 
         if msg.__sizeof__() >= 20:
             if "(" not in msg[1]:
@@ -125,9 +130,9 @@ class Client(tk.Frame):
 
     # adiciona um chatroom à lista
     def add_chatroom_name(self, name):
-        self.chat_room_text_box.insert(0, "#Geral")
+
         if name != "":
-            self.chat_room_text_box.insert(self.chat_room_text_box.size(), "#" + name)
+            self.chat_room_text_box.insert(self.chat_room_text_box.size(), name)
 
 
 # Receives from the server and handle them
@@ -138,7 +143,7 @@ def handle_msg(self):
         # Read answer
         res = client_socket.recv(1024).decode()
         print(res)
-        app.send_msgs_from_server(res)
+        app.recive_msgs_from_server(res)
 
 
 def send_msg(msg):
