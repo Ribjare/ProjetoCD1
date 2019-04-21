@@ -27,8 +27,6 @@ class ChatRoom:
         else:
             str += "None"
 
-        str += "\n Limit of users : "
-
         return str
 
 
@@ -318,7 +316,7 @@ def interpreter(msg, client):
 
 
 # create the first room
-roomList = [ChatRoom("#Geral", "No One")]
+roomList = [ChatRoom("#Geral", None)]
 
 superAdminList = ["JonesVentura"]
 

@@ -12,6 +12,7 @@ isDeactive = False
 n = 0
 username = ""
 
+
 class Client(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -80,15 +81,15 @@ class Client(tk.Frame):
 
     # envia a mensagem escrita para o chat
     def send_msgs(self):
-        print(format(self.text))
+        send_msg(self.text.get())
         if self.text.get() != "":
-            if not self.text.get().startswith("/"):
-                if self.text.get().__sizeof__() >= 20:
-                    # self.lista_msg.insert(self.lista_msg.__sizeof__(), self.text.get())
-                    cut_text = self.cut_message(self.text.get())
-                    self.mensagem_text_box.insert(self.mensagem_text_box.size(), "[" + username + "]: " + cut_text[0])
-                    self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])
+            if self.text.get().__sizeof__() >= 20:
+                # self.lista_msg.insert(self.lista_msg.__sizeof__(), self.text.get())
+                cut_text = self.cut_message(self.text.get())
+                self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[0])
+                self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])
         self.message.delete(0, 'end')
+
 
     # mensagens
     def display_server_messages(self):
@@ -101,7 +102,19 @@ class Client(tk.Frame):
 
     # envia mensagens do server
     def send_msgs_from_server(self, msg):
-        if msg != "":
+        if msg == "":
+            return
+
+        if msg.__sizeof__() >= 20:
+            if "(" not in msg[1]:
+                cut_text = msg.split("\n")
+                for m in cut_text:
+                    self.mensagem_text_box.insert(self.mensagem_text_box.size(), m)
+            else:
+                cut_text = self.cut_message(msg)
+                for text in cut_text:
+                    self.mensagem_text_box.insert(self.mensagem_text_box.size(), text)
+        else:
             self.mensagem_text_box.insert(self.mensagem_text_box.size(), msg)
 
     # adiciona um utilizador à lista
@@ -116,22 +129,27 @@ class Client(tk.Frame):
         if name != "":
             self.chat_room_text_box.insert(self.chat_room_text_box.size(), "#" + name)
 
-    # Receives from the server and handle them
-    def handle_msg(self):
-        while True:
-            if isDeactive:
-                break
-            # Read answer
-            res = client_socket.recv(1024).decode()
-            print(res)
-            self.send_msgs_from_server(res)
+
+# Receives from the server and handle them
+def handle_msg(self):
+    while True:
+        if isDeactive:
+            break
+        # Read answer
+        res = client_socket.recv(1024).decode()
+        print(res)
+        app.send_msgs_from_server(res)
+
+
+def send_msg(msg):
+    client_socket.sendall(msg.encode())
 
 
 root = Tk()
 root.geometry("1250x680")
 root.resizable(0, 0)
+root.title("Chat Service")
 app = Client(root)
-app.mainloop()
 
 
 # Define socket host and port
@@ -146,19 +164,30 @@ client_socket.connect((SERVER_HOST, SERVER_PORT))
 
 # First connection send username
 #print("$ Username?")
-Client.send_msgs()
-
 
 # msg = interface.write_message
-name = input('> ')
-client_socket.sendall(name.encode())
-print(res)
-
+#name = input('> ')
+#client_socket.sendall(name.encode())
 
 # Create a thread to receive msg
 thread = threading.Thread(target=handle_msg, args=(client_socket, ))
 thread.start()
+app.mainloop()
+'''
+# Next msg
+while True:
 
+    # Send message
+    msg = input("")
+    client_socket.sendall(msg.encode())
+
+    # Check for exit
+    if msg == '/exit':
+        res = client_socket.recv(1024).decode()
+        print(res)
+        isDeactive = True
+        break
+'''
 
 # Close socket
 client_socket.close()
