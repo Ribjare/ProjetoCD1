@@ -4,9 +4,7 @@
 """
 import socket
 import threading
-if __name__ == '__main__':
-    from chatroom.interface import Application
-
+import chatroom.interface as inter
 
 isDeactive = False
 
@@ -21,11 +19,14 @@ def handle_msg(client):
         print(res)
 
 
-def send_message():
-    msg = Application.send_message_to_user()
-    client_socket.sendall(msg.encode())
-    return msg
+mensagem = ""
 
+
+def send_message(msg):
+    client_socket.sendall(msg.encode())
+    mensagem = msg
+
+inter.Application()
 
 # Define socket host and port
 SERVER_HOST = '127.0.0.1'
@@ -41,8 +42,7 @@ client_socket.connect((SERVER_HOST, SERVER_PORT))
 print("$ Username?")
 # msg = interface.write_message
 # msg = input('> ')
-mens = send_message()
-client_socket.sendall(mens.encode())
+client_socket.sendall(mensagem.encode())
 res = client_socket.recv(1024).decode()
 print(res)
 # Create a thread to receive msg
@@ -54,11 +54,10 @@ while True:
 
     # Send message
     # msg = input("")
-    mens = send_message()
-    client_socket.sendall(mens.encode())
+    client_socket.sendall(mensagem.encode())
 
     # Check for exit
-    if msg == '/exit':
+    if mensagem == '/exit':
         res = client_socket.recv(1024).decode()
         print(res)
         isDeactive = True

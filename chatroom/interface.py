@@ -1,9 +1,8 @@
 from tkinter import*
 import tkinter as tk
 import tkinter.font
-
-if __name__ == '__main__':
-    from chatroom.client import *
+import chatroom.client as Client
+from chatroom.client import *
 
 
 class Application(tk.Frame):
@@ -11,9 +10,6 @@ class Application(tk.Frame):
         super().__init__(master)
         self.pack()
         self.create_widgets()
-
-    def send_message_to_user(self):
-        return self.text
 
     # cria os widgets
     def create_widgets(self):
@@ -76,11 +72,10 @@ class Application(tk.Frame):
         if self.text.get() != "":
             if not self.text.get().startswith("/"):
                 if self.text.get().__sizeof__() >= 20:
+                    Client.send_message(self.text.get())
                     cut_text = self.cut_message(self.text.get())
-                    # cut_text.reverse()
                     self.mensagem_text_box.insert(self.mensagem_text_box.size(), "[Bob]: " + cut_text[0])
                     self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])
-                    self.send_message_to_user()
             if self.text.get().startswith("/"):
                 self.interpret_message()
         self.message.delete(0, 'end')
@@ -102,7 +97,6 @@ class Application(tk.Frame):
         self.chat_room_text_box.insert(0, "#Geral")
         if name != "":
             self.chat_room_text_box.insert(self.chat_room_text_box.size(), "#" + name)
-
 
 
 root = tk.Tk()
