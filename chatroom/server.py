@@ -15,9 +15,20 @@ class ChatRoom:
         self.userList = []
         self.moderator = [moderator]
         self.banList = []
+        self.password = None
 
     def __str__(self):
         str = "Room : {} \n Moderator : {}".format(self.name, self.moderator)
+
+        str += "\n Password : "
+
+        if self.password is not None:
+            str += "Protected"
+        else:
+            str += "None"
+
+        str += "\n Limit of users : "
+
         return str
 
 
@@ -114,11 +125,17 @@ def join_room(roomName, client):
     room = find_chatroom(roomName)
 
     if room is None:
-        client.connection.sendall("Room not existent")
+        client.connection.sendall("Room not existent".encode())
         raise ValueError("Room not existent")
 
     if is_user_banned(client.name, room):
         raise ValueError("User is banned from this room")
+
+    if room.password is not None:
+        client.connection.sendall("Password?".encode())
+        password = client.connection.recv(1024).decode()
+        if password != room.password:
+            raise ValueError("Incorrect Password")
 
     room.userList.append(client)
     exRoom = find_chatroom(client.currentRoom)
@@ -133,15 +150,6 @@ def join_room(roomName, client):
     msgSend = "User {} has appeared".format(client.name)
     for use in room.userList:
         use.connection.sendall(msgSend.encode())
-
-
-def create_room(room_name, host):
-    room = find_chatroom("#"+room_name)
-    if room is not None:
-        raise ValueError("Name already in use")
-
-    roomList.append(ChatRoom("#" + room_name, host.name))
-    host.connection.sendall(("The room #" + room_name + " was created").encode())
 
 
 def is_mod_in_room(use, room):
@@ -163,7 +171,7 @@ def interpreter(msg, client):
     # send the collection of commands available
     elif msgArray[0] == "/help":
         helpmsg = "Commands available: \n" \
-                  "/create (room name) - Creates a new room; \n" \
+                  "/create (room name) (password - optional ) - Creates a new room; \n" \
                   "/join #(room name) - Join a existing room;\n" \
                   "/userlist - Show's the online users; \n" \
                   "/list - Show's all the existing rooms;\n" \
@@ -176,14 +184,19 @@ def interpreter(msg, client):
 
     #   creates a new room
     elif msgArray[0] == "/create":
-        try:
-            create_room(msgArray[1], client)
-            print("Created the room {}".format(msgArray[1]))
-        except ValueError as error:
-            print(error)
-            client.connection.sendall(error.__str__().encode())
-        except IndexError as error:
-            client.connection.sendall("It need's a second argument".encode())
+        room_name = msgArray[1]
+
+        room = find_chatroom("#" + room_name)
+        if room is not None:
+            raise ValueError("Name already in use")
+
+        room = ChatRoom("#" + room_name, client.name)
+
+        if len(msgArray) == 3:
+            room.password = msgArray[2]
+
+        roomList.append(room)
+        client.connection.sendall(("The room #" + room_name + " was created").encode())
 
     # join's a room
     elif msgArray[0] == "/join":
@@ -283,7 +296,7 @@ def interpreter(msg, client):
         # make the message
         for c in msgArray[1:]:
             str += c + " "
-        # broadcast the message if the user is the super mod
+        # Broadcast the message if the user is the super mod
         for supmod in superAdminList:
             if supmod == client.name:
                 isSuperMod = True
@@ -292,6 +305,7 @@ def interpreter(msg, client):
         if not isSuperMod:
             raise ValueError("You are not super mod")
 
+        # Send the message to every user in every room
         for room in roomList:
             for users in room.userList:
                 users.connection.sendall(str.encode())
@@ -333,13 +347,15 @@ while True:
     msg = "You are now connected, {}!".format(username)
     client_connection.sendall(msg.encode())
     client_connection.sendall("You are in #Geral".encode())
-    # Send for all the user in the room
 
+    # Send for all the user in the room
     for user in roomList[0].userList:
         msgSend = "User {} has appeared".format(username)
         user.connection.sendall(msgSend.encode())
 
+    # Join the #Geral room
     roomList[0].userList.append(client)
+
     # Create a thread to accommodate the client
     thread = threading.Thread(target=handle_client, args=(client, ))
 
