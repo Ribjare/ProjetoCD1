@@ -146,7 +146,7 @@ def join_room(roomName, client):
     str = "You are now in {}".format(roomName)
     client.connection.sendall(str.encode())
 
-    # alert the another users of the room
+    # alert the other users of the room
     msgSend = "User {} has appeared".format(client.name)
     for use in room.userList:
         use.connection.sendall(msgSend.encode())
@@ -333,12 +333,16 @@ server_socket.bind((SERVER_HOST, SERVER_PORT))
 server_socket.listen(1)
 print('Listening on port %s ...' % SERVER_PORT)
 
+username = ""
+
 while True:
     # Wait for client connections
     client_connection, client_address = server_socket.accept()
 
     # Waiting for the username
-    username = client_connection.recv(1024).decode()
+    while username == "":
+        if find_user(client_connection.recv(1024).decode()) is not None:
+            username = client_connection.recv(1024).decode()
 
     client = Client(username, client_connection)
     if username == "JonesVentura":

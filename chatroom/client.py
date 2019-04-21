@@ -12,7 +12,6 @@ isDeactive = False
 n = 0
 username = ""
 
-
 class Client(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -147,30 +146,19 @@ client_socket.connect((SERVER_HOST, SERVER_PORT))
 
 # First connection send username
 #print("$ Username?")
-Client.send_msgs_from_server(Client.return_self(), "$ Username?")
 Client.send_msgs()
+
+
 # msg = interface.write_message
 name = input('> ')
 client_socket.sendall(name.encode())
-res = handle_msg()
 print(res)
+
+
 # Create a thread to receive msg
 thread = threading.Thread(target=handle_msg, args=(client_socket, ))
 thread.start()
 
-# Next msg
-while True:
-
-    # Send message
-    msg = input("")
-    client_socket.sendall(msg.encode())
-
-    # Check for exit
-    if msg == '/exit':
-        res = client_socket.recv(1024).decode()
-        print(res)
-        isDeactive = True
-        break
 
 # Close socket
 client_socket.close()
