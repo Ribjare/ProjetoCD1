@@ -203,10 +203,10 @@ def interpreter(msg, client):
 
             if is_mod_in_room(client, room):
                 room.userList.remove(userKick)
-                userKick.currentRoom = "#Geral"
-                roomList[0].userList.append(userKick)
                 userKick.connection.sendall(("You got kicked from " + room.name).encode())
-                userKick.connection.sendall("You are now in #Geral".encode())
+
+                join_room("#Geral", userKick)
+
                 warningMSG = "User {} was kicked from this room".format(userKick.name)
                 for users in room.userList:
                     users.connection.sendall(warningMSG.encode())
@@ -225,9 +225,10 @@ def interpreter(msg, client):
         userBan = find_user_in_room(msgArray[1], room)
         room.banList.append(userBan.name)
 
-        roomList[0].userList.append(userBan)
         userBan.connection.sendall(("You got banned from " + room.name).encode())
-        userBan.connection.sendall("You are now in #Geral".encode())
+
+        join_room("#Geral", userBan)
+
         warningMSG = "User {} was banned from this room".format(userBan.name)
         for users in room.userList:
             users.connection.sendall(warningMSG.encode())
