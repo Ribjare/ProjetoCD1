@@ -9,6 +9,8 @@ import tkinter as tk
 import tkinter.font
 
 isDeactive = False
+n = 0
+username = ""
 
 
 class Client(tk.Frame):
@@ -16,6 +18,10 @@ class Client(tk.Frame):
         super().__init__(master)
         self.pack()
         self.create_widgets()
+        self.setting_user_name()
+
+    def return_self(self):
+        return self
 
     # cria os widgets
     def create_widgets(self):
@@ -35,13 +41,14 @@ class Client(tk.Frame):
         self.send_msg = tk.Button(bot_frame)
 
         self.quit = tk.Button(self, text="QUIT", fg="red",
-                                command=self.master.destroy)
+                              command=self.master.destroy)
         self.display_widgets()
 
     # Organiza os widgets usados
     def display_widgets(self):
         self.send_msg["text"] = "Send"
         self.send_msg["command"] = self.send_msgs
+        self.display_server_messages()
 
         self.send_msg.pack(side=RIGHT)
 
@@ -80,17 +87,23 @@ class Client(tk.Frame):
                 if self.text.get().__sizeof__() >= 20:
                     # self.lista_msg.insert(self.lista_msg.__sizeof__(), self.text.get())
                     cut_text = self.cut_message(self.text.get())
-                    self.mensagem_text_box.insert(self.mensagem_text_box.size(), "[Bob]: " + cut_text[0])
+                    self.mensagem_text_box.insert(self.mensagem_text_box.size(), "[" + username + "]: " + cut_text[0])
                     self.mensagem_text_box.insert(self.mensagem_text_box.size(), cut_text[1])
-            if self.text.get().startswith("/"):
-                self.interpret_message()
         self.message.delete(0, 'end')
 
-    def interpret_message(self):
-        text_split = self.text.get().split()
-        if text_split[0] == "/create":
-            self.add_chatroom_name(text_split[1])
-            print(text_split[1])
+    # mensagens
+    def display_server_messages(self):
+        if n == 0:
+            self.mensagem_text_box.insert(self.mensagem_text_box.size(), "$ Username?")
+
+    def setting_user_name(self):
+        username = self.mensagem_text_box.get(1)
+        print(username)
+
+    # envia mensagens do server
+    def send_msgs_from_server(self, msg):
+        if msg != "":
+            self.mensagem_text_box.insert(self.mensagem_text_box.size(), msg)
 
     # adiciona um utilizador à lista
     def add_user(self, name):
@@ -104,22 +117,22 @@ class Client(tk.Frame):
         if name != "":
             self.chat_room_text_box.insert(self.chat_room_text_box.size(), "#" + name)
 
+    # Receives from the server and handle them
+    def handle_msg(self):
+        while True:
+            if isDeactive:
+                break
+            # Read answer
+            res = client_socket.recv(1024).decode()
+            print(res)
+            self.send_msgs_from_server(res)
+
 
 root = Tk()
 root.geometry("1250x680")
 root.resizable(0, 0)
 app = Client(root)
 app.mainloop()
-
-
-# Receives from the server and handle them
-def handle_msg(client):
-    while True:
-        if isDeactive:
-            break
-        # Read answer
-        res = client.recv(1024).decode()
-        print(res)
 
 
 # Define socket host and port
@@ -133,11 +146,13 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((SERVER_HOST, SERVER_PORT))
 
 # First connection send username
-print("$ Username?")
+#print("$ Username?")
+Client.send_msgs_from_server(Client.return_self(), "$ Username?")
+Client.send_msgs()
 # msg = interface.write_message
-msg = input('> ')
-client_socket.sendall(msg.encode())
-res = client_socket.recv(1024).decode()
+name = input('> ')
+client_socket.sendall(name.encode())
+res = handle_msg()
 print(res)
 # Create a thread to receive msg
 thread = threading.Thread(target=handle_msg, args=(client_socket, ))
